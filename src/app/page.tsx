@@ -76,7 +76,7 @@ export default function Dashboard() {
 
     if (!error) {
       await loadMarkers()
-      setMessage({ type: 'success', text: 'Marker saved!' })
+      setMessage({ type: 'success', text: 'Saved!' })
       setSelectedId(null)
     } else {
       setMessage({ type: 'error', text: error.message })
@@ -86,7 +86,7 @@ export default function Dashboard() {
   }
 
   async function deleteMarker(barcodeId: number) {
-    if (!confirm('Delete this marker?')) return
+    if (!confirm('Delete?')) return
     await supabase.from('ar_markers').delete().eq('barcode_id', barcodeId)
     await loadMarkers()
     if (selectedId === barcodeId) setSelectedId(null)
@@ -109,172 +109,164 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-gray-900/95 backdrop-blur border-b border-gray-800 px-4 py-4">
+      <header className="sticky top-0 z-30 bg-gray-900/95 backdrop-blur border-b border-gray-800 px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">AR Marker Manager</h1>
-            <p className="text-sm text-gray-400">
-              {markers.length}/64 markers configured
-            </p>
+            <p className="text-sm text-gray-400">{markers.length}/64 markers</p>
           </div>
-          <a
-            href="/viewer"
-            target="_blank"
-            className="btn btn-success text-sm px-4 py-2"
-          >
+          <a href="/viewer" target="_blank" className="btn btn-success text-sm px-4 py-2">
             View AR
           </a>
         </div>
       </header>
 
-      {/* Toast Message */}
+      {/* Toast */}
       {message && (
-        <div className={`fixed top-20 left-4 right-4 z-50 p-4 rounded-xl text-center font-medium animate-pulse ${
+        <div className={`fixed top-20 left-4 right-4 z-50 p-4 rounded-xl text-center font-medium ${
           message.type === 'success' ? 'bg-green-600' : 'bg-red-600'
         }`}>
           {message.text}
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Marker Grid */}
       <main className="max-w-6xl mx-auto p-4">
-        {/* Marker Grid */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-gray-300">Select Marker</h2>
-          <div className="marker-grid">
-            {Array.from({ length: 64 }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => selectMarker(i)}
-                className={`marker-card ${isAssigned(i) ? 'assigned' : ''} ${selectedId === i ? 'selected' : ''}`}
-              >
-                <div 
-                  className="marker-svg aspect-square"
-                  dangerouslySetInnerHTML={{ __html: generateBarcodeMarkerSVG(i, 60) }}
-                />
-                <div className="text-center mt-2">
-                  <span className="text-xs font-bold">#{i}</span>
-                </div>
-              </button>
-            ))}
-          </div>
+        <div className="marker-grid">
+          {Array.from({ length: 64 }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => selectMarker(i)}
+              className={`marker-card ${isAssigned(i) ? 'assigned' : ''}`}
+            >
+              <div 
+                className="marker-svg aspect-square"
+                dangerouslySetInnerHTML={{ __html: generateBarcodeMarkerSVG(i, 60) }}
+              />
+              <div className="text-center mt-2">
+                <span className="text-xs font-bold">#{i}</span>
+                {isAssigned(i) && <span className="text-green-500 ml-1">✓</span>}
+              </div>
+            </button>
+          ))}
         </div>
       </main>
 
-      {/* Editor Modal (Mobile Bottom Sheet) */}
+      {/* Modal Popup */}
       {selectedId !== null && (
-        <div className="fixed inset-0 z-50 lg:static lg:z-auto">
-          {/* Backdrop (mobile only) */}
-          <div 
-            className="fixed inset-0 bg-black/60 lg:hidden"
-            onClick={() => setSelectedId(null)}
-          />
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedId(null)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
           
-          {/* Panel */}
-          <div className="fixed bottom-0 left-0 right-0 lg:static lg:w-96 bg-gray-900 lg:bg-transparent rounded-t-3xl lg:rounded-none border-t border-gray-700 lg:border-0 max-h-[80vh] overflow-y-auto">
-            <div className="panel m-0 lg:m-0 rounded-t-3xl lg:rounded-2xl">
-              {/* Header */}
-              <div className="flex items-center gap-4 mb-5">
+          {/* Modal */}
+          <div 
+            className="relative bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 <div 
-                  className="marker-svg w-16 h-16 flex-shrink-0"
-                  dangerouslySetInnerHTML={{ __html: generateBarcodeMarkerSVG(selectedId, 64) }}
+                  className="marker-svg w-12 h-12"
+                  dangerouslySetInnerHTML={{ __html: generateBarcodeMarkerSVG(selectedId, 48) }}
                 />
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold">Marker #{selectedId}</h2>
-                  <p className="text-sm text-gray-400">
-                    {isAssigned(selectedId) ? 'Already configured' : 'Not configured yet'}
+                <div>
+                  <h2 className="text-lg font-bold">Marker #{selectedId}</h2>
+                  <p className="text-xs text-gray-400">
+                    {isAssigned(selectedId) ? '✓ Configured' : 'Not configured'}
                   </p>
                 </div>
-                <button
-                  onClick={() => setSelectedId(null)}
-                  className="btn btn-secondary text-sm px-3 py-2"
-                >
-                  Close
-                </button>
+              </div>
+              <button
+                onClick={() => setSelectedId(null)}
+                className="text-gray-400 hover:text-white text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={saveMarker} className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="e.g., Car Model"
+                />
               </div>
 
-              {/* Form */}
-              <form onSubmit={saveMarker} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  GLB URL <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="url"
+                  value={glbUrl}
+                  onChange={e => setGlbUrl(e.target.value)}
+                  placeholder="https://example.com/model.glb"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Direct .glb file link</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Name</label>
+                  <label className="block text-sm text-gray-400 mb-2">Scale</label>
                   <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="e.g., Car Model"
+                    type="number"
+                    step="0.1"
+                    value={scale}
+                    onChange={e => setScale(e.target.value)}
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">
-                    GLB URL <span className="text-red-400">*</span>
-                  </label>
+                  <label className="block text-sm text-gray-400 mb-2">Y Position</label>
                   <input
-                    type="url"
-                    value={glbUrl}
-                    onChange={e => setGlbUrl(e.target.value)}
-                    placeholder="https://example.com/model.glb"
-                    required
+                    type="number"
+                    step="0.1"
+                    value={posY}
+                    onChange={e => setPosY(e.target.value)}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Direct link to .glb file
-                  </p>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">Scale</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={scale}
-                      onChange={e => setScale(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">Y Position</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={posY}
-                      onChange={e => setPosY(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="space-y-2 pt-2">
+              {/* Buttons */}
+              <div className="space-y-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={saving || !glbUrl}
+                  className="btn btn-primary w-full"
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+                
+                <div className="grid grid-cols-2 gap-2">
                   <button
-                    type="submit"
-                    disabled={saving || !glbUrl}
-                    className="btn btn-primary w-full"
+                    type="button"
+                    onClick={() => downloadMarkerAsPNG(selectedId)}
+                    className="btn btn-secondary"
                   >
-                    {saving ? 'Saving...' : 'Save Marker'}
+                    📥 PNG
                   </button>
-                  
-                  <div className="grid grid-cols-2 gap-2">
+                  {isAssigned(selectedId) && (
                     <button
                       type="button"
-                      onClick={() => downloadMarkerAsPNG(selectedId)}
-                      className="btn btn-secondary"
+                      onClick={() => deleteMarker(selectedId)}
+                      className="btn btn-danger"
                     >
-                      Download PNG
+                      Delete
                     </button>
-                    {isAssigned(selectedId) && (
-                      <button
-                        type="button"
-                        onClick={() => deleteMarker(selectedId)}
-                        className="btn btn-danger"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
