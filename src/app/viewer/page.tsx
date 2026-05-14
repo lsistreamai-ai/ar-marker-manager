@@ -15,8 +15,8 @@ export default function ARViewer() {
 
   async function loadMarkers() {
     try {
-      const { data, err } = await supabase.from('ar_markers').select('*')
-      if (err) throw err
+      const { data, error } = await supabase.from('ar_markers').select('*')
+      if (error) throw error
       if (data) setMarkers(data)
     } catch (e: any) {
       setError(e.message)
