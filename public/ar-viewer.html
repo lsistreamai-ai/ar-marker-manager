@@ -7,17 +7,31 @@
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   <style>
-    .info { position: fixed; top: 10px; left: 10px; z-index: 999; color: white; background: rgba(0,0,0,0.7); padding: 10px 15px; border-radius: 8px; font-family: sans-serif; }
-    .back { position: fixed; top: 10px; right: 10px; z-index: 999; background: rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-family: sans-serif; }
+    .info { position: fixed; top: 10px; left: 10px; z-index: 999; color: white; background: rgba(0,0,0,0.8); padding: 12px 16px; border-radius: 8px; font-family: sans-serif; font-size: 13px; }
+    .back { position: fixed; top: 10px; right: 10px; z-index: 999; background: white; color: black; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-family: sans-serif; font-weight: bold; }
+    .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: sans-serif; text-align: center; }
+    .error { color: #ff6b6b; }
+    a { color: #4da6ff; }
   </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
   <div class="info" id="status">Loading markers...</div>
-  <a href="/" class="back">← Dashboard</a>
-  <div id="scene"></div>
+  <a href="/markers.html" class="back">Need Markers?</a>
+  <div id="scene" class="loading">
+    <div style="width: 40px; height: 40px; border: 3px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    <div>Initializing camera...</div>
+  </div>
   
   <script>
+    const MARKER_PATTERNS = {
+      0: 'hiro',
+      1: 'kanji'
+    }
+
     async function loadMarkers() {
+      const statusEl = document.getElementById('status')
+      
       try {
         const res = await fetch('https://zywgdjbuttwyingoldgb.supabase.co/rest/v1/ar_markers', {
           headers: {
@@ -26,27 +40,39 @@
         })
         const markers = await res.json()
         
-        document.getElementById('status').textContent = `${markers.length} markers ready`
-        
         if (markers.length === 0) {
-          document.getElementById('status').textContent = 'No markers configured'
+          statusEl.innerHTML = '⚠️ No markers configured. <a href="/">Add markers in dashboard</a>'
           return
         }
+
+        statusEl.textContent = `${markers.length} markers ready`
+        
+        // Build scene with pattern markers
+        let markersHTML = ''
+        markers.forEach(m => {
+          const preset = MARKER_PATTERNS[m.barcode_id] || 'hiro'
+          markersHTML += `
+            <a-marker preset="${preset}">
+              <a-entity
+                gltf-model="${m.glb_url}"
+                scale="${m.scale} ${m.scale} ${m.scale}"
+                position="${m.position_x || 0} ${m.position_y || 0} ${m.position_z || 0}"
+              ></a-entity>
+            </a-marker>
+          `
+        })
         
         const sceneHTML = `
-          <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
-            ${markers.map(m => `
-              <a-marker type="barcode" value="${m.barcode_id}">
-                <a-box position="0 ${m.position_y || 0.5} 0" color="red" scale="${m.scale} ${m.scale} ${m.scale}"></a-box>
-              </a-marker>
-            `).join('')}
+          <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
+            ${markersHTML}
             <a-entity camera></a-entity>
           </a-scene>
         `
         
         document.getElementById('scene').innerHTML = sceneHTML
+        
       } catch (e) {
-        document.getElementById('status').textContent = 'Error: ' + e.message
+        statusEl.innerHTML = '<span class="error">Error: ' + e.message + '</span>'
       }
     }
     

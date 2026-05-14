@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { generateBarcodeMarkerSVG, downloadMarkerAsPNG } from '@/lib/barcode-generator'
 import type { ARMarker } from '@/types'
 
 export default function Dashboard() {
-  const [markers, setMarkers] = useState<ARMarker[]>([])
+  const [markers, setMarkers] =useState<ARMarker[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -15,7 +14,7 @@ export default function Dashboard() {
   const [name, setName] = useState('')
   const [glbUrl, setGlbUrl] = useState('')
   const [scale, setScale] = useState('1')
-  const [posY, setPosY] = useState('0')
+  const [posY, setPosY] = useState('0.5')
 
   useEffect(() => { loadMarkers() }, [])
 
@@ -39,12 +38,12 @@ export default function Dashboard() {
       setName(existing.name)
       setGlbUrl(existing.glb_url)
       setScale(String(existing.scale))
-      setPosY(String(existing.position_y || 0))
+      setPosY(String(existing.position_y || 0.5))
     } else {
       setName('')
       setGlbUrl('')
       setScale('1')
-      setPosY('0')
+      setPosY('0.5')
     }
   }
 
@@ -59,7 +58,7 @@ export default function Dashboard() {
       glb_url: glbUrl,
       scale: parseFloat(scale) || 1,
       position_x: 0,
-      position_y: parseFloat(posY) || 0,
+      position_y: parseFloat(posY) || 0.5,
       position_z: 0,
       rotation_x: 0,
       rotation_y: 0,
@@ -93,6 +92,12 @@ export default function Dashboard() {
     return markers.some(m => m.barcode_id === barcodeId)
   }
 
+  function getMarkerType(id: number) {
+    if (id === 0) return 'Hiro'
+    if (id === 1) return 'Kanji'
+    return 'Pattern'
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -107,9 +112,12 @@ export default function Dashboard() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">AR Marker Manager</h1>
-            <p className="text-sm text-gray-400">{markers.length}/64 markers</p>
+            <p className="text-sm text-gray-400">{markers.length} models configured</p>
           </div>
-          <a href="/viewer" target="_blank" className="btn btn-success text-sm px-4 py-2">View AR</a>
+          <div className="flex gap-2">
+            <a href="/markers.html" className="btn btn-secondary text-sm px-3 py-2">📋 Markers</a>
+            <a href="/viewer" target="_blank" className="btn btn-success text-sm px-4 py-2">View AR</a>
+          </div>
         </div>
       </header>
 
@@ -120,13 +128,26 @@ export default function Dashboard() {
       )}
 
       <main className="max-w-6xl mx-auto p-4">
-        <div className="marker-grid">
-          {Array.from({ length: 64 }, (_, i) => (
+        <div className="bg-blue-900/30 border border-blue-500/30 rounded-xl p-4 mb-6">
+          <h2 className="font-bold text-blue-400 mb-2">📌 Getting Started</h2>
+          <ol className="text-sm text-gray-300 space-y-1">
+            <li>1. Click <strong>Marker #0 (Hiro)</strong> below</li>
+            <li>2. Enter your GLB URL from GitHub</li>
+            <li>3. Save, then print the Hiro marker from <a href="/markers.html" className="text-blue-400 underline">Markers page</a></li>
+            <li>4. Open <strong>View AR</strong> on mobile and scan</li>
+          </ol>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {[0, 1].map(i => (
             <button key={i} onClick={() => selectMarker(i)} className={`marker-card ${isAssigned(i) ? 'assigned' : ''}`}>
-              <div className="marker-svg aspect-square" dangerouslySetInnerHTML={{ __html: generateBarcodeMarkerSVG(i, 60) }} />
-              <div className="text-center mt-2">
-                <span className="text-xs font-bold">#{i}</span>
-                {isAssigned(i) && <span className="text-green-500 ml-1">✓</span>}
+              <div className="bg-white rounded-lg p-3 mb-2">
+                <div className="text-2xl font-bold text-gray-800">{i === 0 ? 'Hi' : '漢'}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs font-bold">#{i}</div>
+                <div className="text-xs text-gray-400">{getMarkerType(i)}</div>
+                {isAssigned(i) && <span className="text-green-500 text-xs">✓</span>}
               </div>
             </button>
           ))}
@@ -136,14 +157,11 @@ export default function Dashboard() {
       {selectedId !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedId(null)}>
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-          <div className="relative bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="marker-svg w-12 h-12" dangerouslySetInnerHTML={{ __html: generateBarcodeMarkerSVG(selectedId, 48) }} />
-                <div>
-                  <h2 className="text-lg font-bold">Marker #{selectedId}</h2>
-                  <p className="text-xs text-gray-400">{isAssigned(selectedId) ? '✓ Configured' : 'Not configured'}</p>
-                </div>
+          <div className="relative bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold">Marker #{selectedId}</h2>
+                <p className="text-xs text-gray-400">Pattern: {getMarkerType(selectedId)}</p>
               </div>
               <button onClick={() => setSelectedId(null)} className="text-gray-400 hover:text-white text-2xl">×</button>
             </div>
@@ -156,8 +174,8 @@ export default function Dashboard() {
 
               <div>
                 <label className="block text-sm text-gray-400 mb-2">GLB URL <span className="text-red-400">*</span></label>
-                <input type="url" value={glbUrl} onChange={e => setGlbUrl(e.target.value)} placeholder="https://example.com/model.glb" required />
-                <p className="text-xs text-gray-500 mt-1">Use a CORS-enabled .glb link (not Google Drive)</p>
+                <input type="url" value={glbUrl} onChange={e => setGlbUrl(e.target.value)} placeholder="https://raw.githubusercontent.com/.../model.glb" required />
+                <p className="text-xs text-gray-500 mt-1">Use GitHub raw URL for your .glb file</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -173,10 +191,7 @@ export default function Dashboard() {
 
               <div className="space-y-2 pt-2">
                 <button type="submit" disabled={saving || !glbUrl} className="btn btn-primary w-full">{saving ? 'Saving...' : 'Save'}</button>
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => downloadMarkerAsPNG(selectedId)} className="btn btn-secondary">📥 PNG</button>
-                  {isAssigned(selectedId) && <button type="button" onClick={() => deleteMarker(selectedId)} className="btn btn-danger">Delete</button>}
-                </div>
+                {isAssigned(selectedId) && <button type="button" onClick={() => deleteMarker(selectedId)} className="btn btn-danger w-full">Delete</button>}
               </div>
             </form>
           </div>
