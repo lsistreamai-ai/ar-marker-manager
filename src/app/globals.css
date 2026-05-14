@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-900 text-white;
+}
+
+.marker-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .marker-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.marker-card {
+  @apply bg-gray-800 rounded-lg p-2 border border-gray-700 transition-all;
+}
+
+.marker-card:hover {
+  @apply border-blue-500 shadow-lg shadow-blue-500/20;
+}
+
+.marker-card.assigned {
+  @apply border-green-500;
+}
+
+.marker-svg {
+  background: white;
+  border-radius: 4px;
+}
