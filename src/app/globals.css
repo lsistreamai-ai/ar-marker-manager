@@ -2,35 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-900 text-white;
+* {
+  box-sizing: border-box;
 }
 
+body {
+  @apply bg-gray-900 text-white min-h-screen;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile-first marker grid */
 .marker-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 640px) {
   .marker-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
   }
 }
 
-.marker-card {
-  @apply bg-gray-800 rounded-lg p-2 border border-gray-700 transition-all;
+@media (min-width: 1024px) {
+  .marker-grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+  }
 }
 
-.marker-card:hover {
-  @apply border-blue-500 shadow-lg shadow-blue-500/20;
+/* Card styles */
+.marker-card {
+  @apply bg-gray-800 rounded-xl p-3 border-2 border-gray-700 transition-all cursor-pointer;
+  touch-action: manipulation;
+}
+
+.marker-card:active {
+  @apply scale-95;
+}
+
+.marker-card.selected {
+  @apply border-blue-500 bg-blue-900/20 ring-2 ring-blue-400;
 }
 
 .marker-card.assigned {
-  @apply border-green-500;
+  @apply border-green-600 bg-green-900/10;
+}
+
+.marker-card.assigned.selected {
+  @apply border-green-400 ring-green-400;
 }
 
 .marker-svg {
   background: white;
-  border-radius: 4px;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+/* Form inputs */
+input {
+  @apply w-full px-4 py-3 bg-gray-800 rounded-xl border-2 border-gray-700 text-white;
+  @apply focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20;
+  @apply placeholder-gray-500;
+  font-size: 16px;
+}
+
+/* Buttons */
+.btn {
+  @apply px-4 py-3 rounded-xl font-medium transition-all text-center;
+  touch-action: manipulation;
+}
+
+.btn:active {
+  @apply scale-95;
+}
+
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white;
+}
+
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white;
+}
+
+.btn-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white;
+}
+
+.btn-secondary {
+  @apply bg-gray-700 hover:bg-gray-600 text-white;
+}
+
+.btn:disabled {
+  @apply opacity-50 pointer-events-none;
+}
+
+/* Panel */
+.panel {
+  @apply bg-gray-800 rounded-2xl border border-gray-700 p-5;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
 }
