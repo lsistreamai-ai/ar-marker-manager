@@ -39,7 +39,7 @@ export default function Dashboard() {
       setName(existing.name)
       setGlbUrl(existing.glb_url)
       setScale(String(existing.scale))
-      setPosY(String(existing.position.y))
+      setPosY(String(existing.position_y || 0))
     } else {
       setName('')
       setGlbUrl('')
@@ -124,7 +124,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-4">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold">🎯 AR Marker Manager</h1>
+        <h1 className="text-3xl font-bold">AR Marker Manager</h1>
         <p className="text-gray-400 mt-1">Create barcode markers (0-63) and assign GLB models</p>
         <div className="mt-2 text-sm">
           <span className="text-green-500">{markers.length}</span>
@@ -153,7 +153,7 @@ export default function Dashboard() {
                 <div className="text-center mt-1">
                   <span className="text-xs font-mono">#{i}</span>
                   {isAssigned(i) && (
-                    <span className="ml-1 text-green-500">✓</span>
+                    <span className="ml-1 text-green-500">+</span>
                   )}
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function Dashboard() {
                     onClick={() => downloadMarker(selectedId)}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded font-medium"
                   >
-                    📥 PNG
+                    PNG
                   </button>
                 </div>
 
@@ -262,15 +262,14 @@ export default function Dashboard() {
                     rel="noopener"
                     className="text-blue-400 text-sm hover:underline break-all"
                   >
-                    🔗 Open GLB →
+                    Open GLB
                   </a>
                 </div>
               )}
             </div>
           ) : (
             <div className="bg-gray-800 rounded-lg p-8 text-center text-gray-500 border border-gray-700">
-              <div className="text-4xl mb-2">👆</div>
-              <p>Select a marker to edit</p>
+              <div className="text-4xl mb-2">Select a marker to edit</div>
             </div>
           )}
 
@@ -281,13 +280,13 @@ export default function Dashboard() {
               target="_blank"
               className="block w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded font-medium text-center"
             >
-              🔓 Open AR Viewer
+              Open AR Viewer
             </a>
             <a
               href="/setup"
               className="block w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded font-medium text-center"
             >
-              ⚙️ Database Setup
+              Database Setup
             </a>
           </div>
         </div>
